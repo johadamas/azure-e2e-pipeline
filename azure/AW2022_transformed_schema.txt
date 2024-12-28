@@ -1,0 +1,187 @@
+# Address
+
+root
+ |-- address_id: integer (nullable = true)
+ |-- address_line1: string (nullable = true)
+ |-- address_line2: string (nullable = true)
+ |-- city: string (nullable = true)
+ |-- state_province: string (nullable = true)
+ |-- country_region: string (nullable = true)
+ |-- postal_code: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+ # Customer
+
+ root
+ |-- customer_id: integer (nullable = true)
+ |-- name_style: boolean (nullable = true)
+ |-- title: string (nullable = true)
+ |-- first_name: string (nullable = true)
+ |-- middle_name: string (nullable = true)
+ |-- last_name: string (nullable = true)
+ |-- suffix: string (nullable = true)
+ |-- company_name: string (nullable = true)
+ |-- sales_person: string (nullable = true)
+ |-- email_address: string (nullable = true)
+ |-- phone: string (nullable = true)
+ |-- password_hash: string (nullable = true)
+ |-- password_salt: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# CustomerAddress
+
+root
+ |-- customer_id: integer (nullable = true)
+ |-- address_id: integer (nullable = true)
+ |-- address_type: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# Product
+
+root
+ |-- product_id: integer (nullable = true)
+ |-- name: string (nullable = true)
+ |-- product_number: string (nullable = true)
+ |-- color: string (nullable = true)
+ |-- standard_cost: decimal(19,4) (nullable = true)
+ |-- list_price: decimal(19,4) (nullable = true)
+ |-- size: string (nullable = true)
+ |-- weight: decimal(8,2) (nullable = true)
+ |-- product_category_id: integer (nullable = true)
+ |-- product_model_id: integer (nullable = true)
+ |-- sell_start_date: string (nullable = true)
+ |-- sell_end_date: string (nullable = true)
+ |-- discontinued_date: string (nullable = true)
+ |-- thumb_nail_photo: binary (nullable = true)
+ |-- thumbnail_photo_file_name: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# ProductCategory
+
+root
+ |-- product_category_id: integer (nullable = true)
+ |-- parent_product_category_id: integer (nullable = true)
+ |-- name: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# ProductDescription
+
+root
+ |-- product_description_id: integer (nullable = true)
+ |-- description: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# ProductModel
+
+root
+ |-- product_model_id: integer (nullable = true)
+ |-- name: string (nullable = true)
+ |-- catalog_description: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# ProductModelProductDescription
+
+root
+ |-- product_model_id: integer (nullable = true)
+ |-- product_description_id: integer (nullable = true)
+ |-- culture: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# SalesOrderDetail
+
+root
+ |-- sales_order_id: integer (nullable = true)
+ |-- sales_order_detail_id: integer (nullable = true)
+ |-- order_qty: integer (nullable = true)
+ |-- product_id: integer (nullable = true)
+ |-- unit_price: decimal(19,4) (nullable = true)
+ |-- unit_price_discount: decimal(19,4) (nullable = true)
+ |-- line_total: decimal(38,6) (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+# SalesOrderHeader
+
+root
+ |-- sales_order_id: integer (nullable = true)
+ |-- revision_number: integer (nullable = true)
+ |-- order_date: string (nullable = true)
+ |-- due_date: string (nullable = true)
+ |-- ship_date: string (nullable = true)
+ |-- status: integer (nullable = true)
+ |-- online_order_flag: boolean (nullable = true)
+ |-- sales_order_number: string (nullable = true)
+ |-- purchase_order_number: string (nullable = true)
+ |-- account_number: string (nullable = true)
+ |-- customer_id: integer (nullable = true)
+ |-- ship_to_address_id: integer (nullable = true)
+ |-- bill_to_address_id: integer (nullable = true)
+ |-- ship_method: string (nullable = true)
+ |-- credit_card_approval_code: string (nullable = true)
+ |-- sub_total: decimal(19,4) (nullable = true)
+ |-- tax_amt: decimal(19,4) (nullable = true)
+ |-- freight: decimal(19,4) (nullable = true)
+ |-- total_due: decimal(19,4) (nullable = true)
+ |-- comment: string (nullable = true)
+ |-- rowguid: string (nullable = true)
+ |-- modified_date: string (nullable = true)
+
+
+from pyspark.sql.functions import date_format, from_utc_timestamp
+from pyspark.sql.types import TimestampType
+
+for i in table_name:
+    # Load data from the bronze container
+    path = f'/mnt/mammal-bronze/SalesLT/{i}/{i}.parquet'
+    df = spark.read.format('parquet').load(path)
+
+    # Transform the data
+    for col in df.columns:
+        if 'Date' in col or 'date' in col:
+            df = df.withColumn(col, date_format(from_utc_timestamp(df[col].cast(TimestampType()), "UTC"), "yyyy-MM-dd"))
+    
+    # Load the transformed data to the silver container
+    output_path = f'/mnt/mammal-silver/SalesLT/{i}/'
+    df.write.format('delta').mode('overwrite').save(output_path)
+
+    # Optionally, log the processed table
+    print(f"Processed table: {i} and saved to: {output_path}")
+
+
+import re
+
+for name in table_name:
+    # Define the path for the Delta table
+    path = '/mnt/mammal-silver/SalesLT/' + name
+    df = spark.read.format('delta').load(path)
+
+    # Get all column names
+    column_names = df.columns
+
+    for old_column_name in column_names:
+        # Convert camelCase or PascalCase to snake_case
+        new_column_name = re.sub(
+            r'(?<!^)(?<![A-Z])([A-Z])',  # Matches an uppercase letter not preceded by another uppercase letter
+            r'_\1', 
+            old_column_name
+        ).lower()
+
+        # Rename the column
+        df = df.withColumnRenamed(old_column_name, new_column_name)
+
+    # Clean the output path to avoid illegal characters
+    output_path = '/mnt/mammal-gold/SalesLT/' + name + '/'
+    
+    # Ensure the output path is valid
+    df.write.format('delta').mode('overwrite').save(output_path)
+
+    # Optionally display the updated DataFrame
+    print(f"Transformed DataFrame for table: {name}")

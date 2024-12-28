@@ -1,0 +1,20 @@
+# Mount the bronze container
+dbutils.fs.mount(
+    source='wasbs://ibex-bronze@ibexadlsdatapipeline.blob.core.windows.net', 
+    mount_point='/mnt/ibex-bronze', 
+    extra_configs={'fs.azure.account.key.ibexadlsdatapipeline.blob.core.windows.net': dbutils.secrets.get(scope='adbSecretScope', key='storageAccountKey')}
+)
+
+# Mount the silver container
+dbutils.fs.mount(
+    source='wasbs://ibex-silver@ibexadlsdatapipeline.blob.core.windows.net', 
+    mount_point='/mnt/ibex-silver', 
+    extra_configs={'fs.azure.account.key.ibexadlsdatapipeline.blob.core.windows.net': dbutils.secrets.get(scope='adbSecretScope', key='storageAccountKey')}
+)
+
+# Mount the gold container
+dbutils.fs.mount(
+    source='wasbs://ibex-gold@ibexadlsdatapipeline.blob.core.windows.net', 
+    mount_point='/mnt/ibex-gold', 
+    extra_configs={'fs.azure.account.key.ibexadlsdatapipeline.blob.core.windows.net': dbutils.secrets.get(scope='adbSecretScope', key='storageAccountKey')}
+)

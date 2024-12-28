@@ -1,0 +1,29 @@
+#StoredProcedure
+USE AdventureWorks2022_DW
+GO
+
+CREATE OR ALTER PROC CreateSQLServerlessView_gold @ViewName NVARCHAR(100)
+AS
+BEGIN
+
+DECLARE @statement VARCHAR(MAX)
+
+    SET @statement = N'CREATE OR ALTER VIEW ' + @ViewName + ' AS
+        SELECT *
+        FROM
+            OPENROWSET(
+                BULK ''https://mammaladlsdatapipeline.dfs.core.windows.net/mammal-gold/SalesLT/' + @ViewName + '/'',
+                FORMAT = ''DELTA''
+        ) AS [result]
+    '
+
+EXEC (@statement)
+
+END
+GO
+
+#Test the StoredProcedure
+EXEC CreateSQLServerlessView_gold @ViewName = N'Address';
+
+#Drop the created VIEW
+DROP VIEW Address;

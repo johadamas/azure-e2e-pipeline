@@ -1,0 +1,19 @@
+# create user and pass for AdventureWorksDW2022
+CREATE LOGIN dbadmin321
+WITH PASSWORD = 'MySecretPassword123!'
+
+CREATE USER jonathan for login dbadmin321
+
+
+# query to get all table
+SELECT
+	s.name AS SchemaName, 
+	t.name AS TableName
+FROM sys.tables t
+INNER JOIN sys.schemas s
+ON t.schema_id = s.schema_id
+WHERE s.name = 'SalesLT'
+
+
+# dynamic content to get all the SchemaName and the TableName
+@{concat('SELECT * FROM ', item().SchemaName, '.', item().TableName)}

@@ -1,0 +1,39 @@
+table_name = []
+
+for i in dbutils.fs.ls('/mnt/ibex-silver/SalesLT/'):
+  table_name.append(i.name.split('/')[0])
+
+table_name
+
+#######################
+
+import re
+
+for name in table_name:
+    # Define the path for the Delta table
+    path = '/mnt/ibex-silver/SalesLT/' + name
+    df = spark.read.format('delta').load(path)
+
+    # Get all column names
+    column_names = df.columns
+
+    for old_column_name in column_names:
+        # Convert camelCase or PascalCase to snake_case
+        new_column_name = re.sub(
+            r'(?<!^)(?<![A-Z])([A-Z])',  # Matches an uppercase letter not preceded by another uppercase letter
+            r'_\1', 
+            old_column_name
+        ).lower()
+
+        # Rename the column
+        df = df.withColumnRenamed(old_column_name, new_column_name)
+
+    # Clean the output path to avoid illegal characters
+    output_path = '/mnt/cobra-gold/SalesLT/' + name + '/'
+    
+    # Ensure the output path is valid
+    df.write.format('delta').mode('append').save(output_path)
+
+    # Optionally display the updated DataFrame
+    print(f"Transformed DataFrame for table: {name}")
+    display(df)

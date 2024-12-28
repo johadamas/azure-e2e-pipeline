@@ -1,0 +1,1 @@
+azure portal >> storage account >> iam >> add role assignment >> Storage Blob Data Contributor ke User

@@ -1,33 +1,85 @@
 # End-to-End Azure Data Pipeline with Terraform
 
-## Introduction
-This project demonstrates the implementation of an end-to-end Azure Data Engineering pipeline. It extracts data from the AdventureWorksDW2022 database hosted on an on-premises SQL Server and loads it into Azure Storage. The data is then transformed following the Medallion Architecture (bronze, silver, and gold layers). Finally, Power BI is used to visualize the insights effectively.
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Key Features](#key-features)
+3. [Prerequisites](#prerequisites)
+4. [Get Started](#get-started)
+5. [Power BI Dashboard](#power-bi-dashboard)
+6. [Conclusion](#conclusion)
+7. [Future Enhancements](#future-enhancements)
 
-## Architecture
+## Project Overview
+This project implements an end-to-end Azure Data Engineering pipeline, extracting data from the AdventureWorksDW2022 database on an on-prem SQL Server and loading it into Azure Data Lake Storage. The data follows the Medallion Architecture (bronze, silver, gold) and is visualized in Power BI. It leverages Azure Data Factory, Databricks, Storage, Synapse, and Key Vault, with Terraform provisioning only the core Azure resources as my first cloud integration experience.
 
 ![Pipeline Flow](/images/0.project_architecture.png "Project Architecture")
 
-This project leverages Azure services such as Azure Data Factory, Azure Databricks, Azure Storage, Synapse Studio, and Key Vault to build an end-to-end ETL data pipeline. It also integrates Terraform as the infrastructure provisioning tool.
+*Note: Terraform provisions only the core Azure resources. Other resources, such as Linked Services, Databricks clusters, and notebooks, are not provisioned and must be created manually.*
 
-## Project Flow
+## Key Features
+This section contains the main functionalities and capabilities of ETL Pipeline:
+
+1. **End-to-End Data Pipeline**
+    - Extracts data from on-prem SQL Server (AdventureWorksDW2022) and processes it in Azure using the Medallion Architecture (bronze, silver, gold)
+
+2. **Infrastructure as Code**
+    - Provisions core Azure resources (Data Factory, Databricks, Storage, Synapse, Key Vault) with Terraform, supporting easy teardown via `terraform destroy`.
+
+3. **Automated & Secure Data Movement**
+    - Uses Azure Data Factory with a self-hosted integration runtime for on-premises data extraction and secure storage.
+
+4. **Scalable Data Processing**
+    - Leverages Azure Databricks and Spark for efficient distributed transformations.
+
+5. **Secure Credential Management**
+    - Stores and retrieves secrets via Azure Key Vault, integrating with Databricks secret scope
+
+6. **Data Warehousing & Automation**
+    - Creates SQL views and automates transformations in Synapse Studio (Serverless SQL Pool)
+
+7. **Business Intelligence & Visualization**
+    - Visualizes insights using Power BI dashboards.
+
+## Prerequisites
+1. **Azure Subscription**: 
+    - Ensure you have an active Azure subscription with Owner or Contributor access to provision the required resources.
+
+2. **Azure CLI**:
+    - Install Azure CLI to authenticate with Azure for Terraform provisioning.
+
+3. **Terraform**: 
+    - Install Terraform and set up the configuration files for Azure resource provisioning
+
+4. **SQL Server**:
+    - Set up SQL Server with the AdventureWorksDW2022 database. Download the .bak file from the official Microsoft website [here](https://learn.microsoft.com/en-us/sql/samples/adventureworks-install-configure?view=sql-server-ver16&tabs=ssms)
+
+5. **SQL Server Management Studio**: 
+    - Used to manage the SQL database and configure the Self-Hosted Integration Runtime for Azure Data Factory
+
+## Get Started
 
 1. **Install and Authenticate Azure CLI**:  
-   Execute Airflow DAGs to:
-    - Install Azure CLI and use a device code to authenticate with Azure
+    - Install Azure CLI and use a device code to authenticate with Azure using the terminal
+
+        ```bash
+        az login --use-device-code
+        ```
 
 2. **Install Terraform**:
     - Install Terraform and set up the configuration files for Azure resource provisioning
 
 3. **Provision Resources Using Terraform**:  
-    - Navigate to the Terraform directory and run the following commands:
+    - Navigate to the Terraform directory and run the following commands in the terminal:
 
         ```bash
+        terraform init
         terraform validate
         terraform plan
         terraform apply
         ```
 
-    *Note:*  
+    ***Note:***
+    - `terraform init` is used to initialize terraform  
     - `terraform validate` is used to validate the configuration.  
     - `terraform plan` previews the changes that Terraform will make.  
     - `terraform apply` applies the configuration to create the resources.  
@@ -116,35 +168,51 @@ This project leverages Azure services such as Azure Data Factory, Azure Databric
 
         ![](/images/7.pbi_semantic.png "")
 
-20. **Create Dashboards in Power BI**: 
-    - Design dashboards in Power BI to visualize the data and generate actionable insights
+20. **Destroy all resources with Terraform**: 
+    - After the project is done, we can perform terraform destroy to delete all of the Azure resource quickly
+
+## Power BI Dashboard
+The dashboard analyzes the views created in Synapse for tables stored in the gold container. It connects to Synapse Serverless SQL Pool via the Serverless SQL Endpoint, ensuring that each refresh reflects the latest processed data
+
+### Additional Table:
+I intentionally added a static table, budget, to simulate scenarios such as comparing monthly sales against budgeted values—for example, determining whether sales in January exceeded the budget
+
+### **Features:**
+- `Interactive Tooltips`: Hover over visualizations to see detailed information
+
+- `Bookmarks:` Use bookmarks to navigate between different views and filters seamlessly
+
+    - Here’s a preview of the dashboard in action:
 
         ![](/images/8.dashboard.gif "")
 
-21. **Destroy all resources with Terraform**: 
-    - After the project is done, we can perform terraform destroy to delete all of the Azure resource quickly
+### **Insights**:
+Using the dashboard, we can gain insight such as:
+- `Top 3 Best Selling Product`: Visualized using a bar chart
 
-## Additional Notes
+- `Sales by Region and Product Sub Category`: Displayed as a stacked bar chart
 
-- Terraform does not provision:
-  - Azure Linked Services.
-  - Azure Databricks clusters and notebooks
+- `Monthly Sales vs Budget`: Shown in a combo chart (bars for sales, line for budget)
 
-- These configurations must be set up manually before running the pipeline.
+- `Yearly Sales Growth`: Illustrated with a waterfall chart
 
-## Prerequisites
-
-1. **Azure Subscription**: 
-    - Ensure you have an active Azure subscription with Owner or Contributor access to provision the required resources.
-2. **Azure CLI**:
-    - Install Azure CLI to authenticate with Azure for Terraform provisioning.
-3. **Terraform**: 
-    - Install Terraform and set up the configuration files for Azure resource provisioning.
+- `Sales by Product Category`: Represented in a bar chart
 
 ## Conclusion
-This project showcases the implementation of an end-to-end Azure Data Engineering pipeline using Terraform for infrastructure provisioning. It demonstrates how to extract, transform, and load data efficiently and visualize insights with Power BI. The detailed steps and provided resources aim to simplify the process for anyone looking to build a similar pipeline.
+This project creates an end-to-end Azure Data Engineering pipeline using Terraform for infrastructure provisioning. It handles data extraction, transformation, and loading, visualized in Power BI. Although functional, the pipeline can be enhanced by fully automating resource provisioning with Terraform. The provided steps and resources aim to simplify the process for similar projects
 
-## References
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/)
-- [Terraform](https://www.terraform.io/docs/)
+## Future Enhancements
+1. **Complete Terraform Automation**:
+    - Fully automate resource provisioning with Terraform for Databricks clusters, linked services, notebooks, etc.
 
+2. **Data Quality Checks and Validation**:
+    - Implement automated validation tests during ETL for data consistency and quality
+
+3. **Implement CDC (Change Data Capture)**:
+    - Track and process only data changes from source systems for improved pipeline performance
+
+4. **Implement Monitoring**:
+    - Add monitoring and alerting with Azure Monitor or custom logging for pipeline health and performance
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

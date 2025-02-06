@@ -172,31 +172,30 @@ This section contains the main functionalities and capabilities of ETL Pipeline:
     - After the project is done, we can perform terraform destroy to delete all of the Azure resource quickly
 
 ## Power BI Dashboard
-The dashboard analyzes the views created in Synapse for tables stored in the gold container. It connects to Synapse Serverless SQL Pool via the Serverless SQL Endpoint, ensuring that each refresh reflects the latest processed data
+1. **Dashboard Overview**
 
-### Additional Table:
-I intentionally added a static table, budget, to simulate scenarios such as comparing monthly sales against budgeted values—for example, determining whether sales in January exceeded the budget
+    The dashboard analyzes the views created in Synapse for tables stored in the gold container. It connects to Synapse Serverless SQL Pool via the Serverless SQL Endpoint, ensuring that each refresh reflects the latest processed data
 
-### **Features:**
-- `Interactive Tooltips`: Hover over visualizations to see detailed information
-
-- `Bookmarks:` Use bookmarks to navigate between different views and filters seamlessly
-
-    - Here’s a preview of the dashboard in action:
+      - **Here’s a preview of the dashboard in action**:
 
         ![](/images/8.dashboard.gif "")
 
-### **Insights**:
-Using the dashboard, we can gain insight such as:
-- `Top 3 Best Selling Product`: Visualized using a bar chart
+2. **Additional Table**:
 
-- `Sales by Region and Product Sub Category`: Displayed as a stacked bar chart
+    I intentionally added a static table, budget, to simulate scenarios such as comparing monthly sales against budgeted values—for example, determining whether sales in January exceeded the budget
 
-- `Monthly Sales vs Budget`: Shown in a combo chart (bars for sales, line for budget)
+3.  **Insights**:
 
-- `Yearly Sales Growth`: Illustrated with a waterfall chart
+    Using the dashboard, we can gain insight such as:
+    - `Top 3 Best Selling Product`: Visualized using a bar chart
 
-- `Sales by Product Category`: Represented in a bar chart
+    - `Sales by Region and Product Sub Category`: Displayed as a stacked bar chart
+
+    - `Monthly Sales vs Budget`: Shown in a combo chart (bars for sales, line for budget)
+
+    - `Yearly Sales Growth`: Illustrated with a waterfall chart
+
+    - `Sales by Product Category`: Represented in a bar chart
 
 ## Conclusion
 This project creates an end-to-end Azure Data Engineering pipeline using Terraform for infrastructure provisioning. It handles data extraction, transformation, and loading, visualized in Power BI. Although functional, the pipeline can be enhanced by fully automating resource provisioning with Terraform. The provided steps and resources aim to simplify the process for similar projects
